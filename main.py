@@ -16,12 +16,14 @@ client = MongoClient("mongodb+srv://hoorad:h8rad@cluster0.qm6fhqa.mongodb.net/?r
 db = client["U2M"]  # Replace "mydatabase" with the name of your MongoDB database
 collection = db["sensor"]  # Replace "mycollection" with the name of your MongoDB collection
 
-@app.post("/")
-async def get_body(request: Request):
+@app.post("/{pid}")
+async def get_body(pid: str, request: Request):
     if request.body:
         body_bytes = await request.body()
         body_str = body_bytes.decode("utf-8")
-        body_dict = loads(body_str)
+
+        body_dict = {'participantId': pid}
+        body_dict.update(loads(body_str))
 
         # Save the data to MongoDB
         collection.insert_one(body_dict)
