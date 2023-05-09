@@ -10,7 +10,15 @@ client = MongoClient(
 db = client["U2M"]
 collection = db["sensor"]
 
-df = pd.DataFrame(list(collection.find({"date": today})))
+today_df = pd.DataFrame(list(collection.find({"date": today})))
 
-# Save today's log in csv format
-df.to_csv(f'U2M-{today}.csv')
+# Get the list of today's participant
+pids = set(today_df["participantId"])
+# print(pids)
+
+for pid in pids:
+    df = today_df[today_df.participantId == pid]
+    # print(df["participantId"])
+
+    # Save today's log in csv format for each participant
+    df.to_csv(f'U2M-{today}-{pid}.csv')
