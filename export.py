@@ -4,15 +4,18 @@ from datetime import date
 import os
 
 
+# Pass directory, participantID, today date, and a list of sensor names.
+# Then it will create a bunch of csv files for each senosr name in dir/pid/date.
 def mkfile(dir, pid, date, sensors: list):
     adr = f'{dir}/{pid}/{date}'
     os.makedirs(adr)
     for sensor in sensors:
-        f = open(f'{adr}/{sensor}.csv', 'x')
+        with open(f'{adr}/{sensor}.csv', 'x'):
+            pass
 
 
 
-dir = './'
+dir = '.'
 today = str(date.today())
 
 client = MongoClient(
@@ -39,14 +42,28 @@ for pid in pids:
     for packet in payloads:
         # print(packet)
         for sensor_data in packet:
-            sensor_name = sensor_data['name']
-            with open(f'{dir}/{pid}/{today}/{sensor_name}.csv', 'a') as csv:
-                csv.write(f'{sensor_data}')
+            # print(sensor_data)
+            sensor_name = sensor_data.pop('name')
+
+            # Add the values dictionary as a nested dictionary
+            sensor_data.update(sensor_data.pop('values'))
             # print(sensor_data)
 
-    # print(df['participantId'])
+            # Convert the dictionary to a DataFrame
+            sensor_data = pd.DataFrame.from_dict(sensor_data, orient='index').T
+            # print(sensor_data)
 
-    '''remove the list from the payload and create a .csv for each sensor'''
+            # if os.path.getsize(f'{dir}/{pid}/{today}/{sensor_name}.csv') == 0:
+            #     # sensor_data.columns.to_series().to_csv(f'{dir}/{pid}/{today}/{sensor_name}.csv', index=False, header=True)
+            #     print(type(sensor_data.columns))
 
-    # Save today's log in csv format for each participant
-    # df.to_csv(f'U2M-{today}-{pid}.csv')
+
+            # print(sensor_data)
+
+            # Read the data in csv file
+            # with open(f'{dir}/{pid}/{today}/{sensor_name}.csv', 'a') as csv:
+            #     csv.write(f'{sensor_data}')
+            sensor_data.to_csv(f'{dir}/{pid}/{today}/{sensor_name}.csv', header=False, index=False, mode='a')
+            
+
+    
