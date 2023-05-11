@@ -4,12 +4,15 @@ from datetime import date
 import os
 
 
+'''add the condition for handling when the folder is already created'''
 # Pass directory, participantID, today date, and a list of sensor names.
 # Then it will create a bunch of csv files for each senosr name in dir/pid/date.
 def mkfile(dir, pid, date, sensors: list):
-    adr = f'{dir}/{pid}/{date}'
-    os.makedirs(adr)
+    adr = f'{str(dir)}/{str(pid)}/{str(date)}'
+    os.makedirs(adr, exist_ok=True)
     for sensor in sensors:
+        if os.path.exists(f'{adr}/{sensor}.csv'):
+            os.remove(f'{adr}/{sensor}.csv')
         with open(f'{adr}/{sensor}.csv', 'x'):
             pass
 
@@ -53,6 +56,7 @@ for pid in pids:
             sensor_data = pd.DataFrame.from_dict(sensor_data, orient='index').T
             # print(sensor_data)
 
+            '''add the header for the csv files'''
             # if os.path.getsize(f'{dir}/{pid}/{today}/{sensor_name}.csv') == 0:
             #     # sensor_data.columns.to_series().to_csv(f'{dir}/{pid}/{today}/{sensor_name}.csv', index=False, header=True)
             #     print(type(sensor_data.columns))
