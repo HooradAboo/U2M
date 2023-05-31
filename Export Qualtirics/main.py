@@ -1,14 +1,22 @@
+import pandas as pd
 import glob
 import os
-import datetime
-import pandas as pd
-from utility import pid_status
+
+
+# If the pid does not exists in the df, it will add it to it
+def pid_status(pid, df):
+    if not pid in df['Participant'].values:
+        # print(f'Adding {pid} to the table.')
+        new_row = [pid] + [0] * (df.shape[1] - 1)
+        df.loc[len(df)] = new_row
+    # else:
+    #     print(f'{pid} alredy exists in the table.')
+    return df
 
 
 # Calculate the start day and end day of the week
-start_date = pd.to_datetime(datetime.date(2023, 4, 23)).date()
+start_date = pd.to_datetime(input('Enter the start date of the week (e.g. 2023-04-23): ')).date()
 end_date = pd.to_datetime(start_date + pd.DateOffset(days=6)).date()
-# print(type(start_date), type(end_date))
 
 # Create a dataframe for participation tracking
 dates = pd.date_range(start=start_date, end=end_date)
@@ -21,7 +29,7 @@ participation_tracking = pd.DataFrame(columns=['Participant'] +
                                               ['Self Report Assessments (DSQ)'])
 
 '''
-    Fill Annotations and Self Report Assassments columns.
+    Fill Annotation Surveys columns
 '''
 # List all Qualtrics surveys
 all_surveys = glob.glob('*.csv')
@@ -80,12 +88,9 @@ for survey in all_surveys:
             column_index = 18
             participation_tracking.iloc[row_index, column_index] = int(row['Progress'])
 
-# Calculate the sum of all surveys for a week
-participation_tracking['Total Surveys'] = participation_tracking.iloc[:, 1:8].sum(axis=1)
-
 
 '''
-    Fill Upload columns.
+    Fill Sensor Upload columns
 '''
 # List all Participants folders
 all_participants = glob.glob('../P0*')
@@ -115,10 +120,23 @@ for participant in all_participants:
             row_index = participation_tracking.index[participation_tracking['Participant'] == pid][0]
             column_index = (folder_date - start_date).days + 8
             participation_tracking.iloc[row_index, column_index] += 1
-    
+
+
+''' 
+    Fill Total Surveys and Total Uploads columns
+'''   
+# Calculate the sum of all surveys for a week
+participation_tracking['Total Surveys'] = participation_tracking.iloc[:, 1:8].sum(axis=1)
+
 # Calculate the sum of all uploads for a week
 participation_tracking['Total Uploads'] = participation_tracking.iloc[:, 8:15].sum(axis=1)
 
+
+'''
+    Save the Results
+'''
 # Save the result in a csv file
-participation_tracking.to_csv(f'./{start_date}_to_{end_date}.csv')
+if not os.path.exists(f'./results'):
+    os.mkdir(f'./results')
+participation_tracking.to_csv(f'./results/{start_date}_to_{end_date}.csv')
 
