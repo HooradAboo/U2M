@@ -32,7 +32,7 @@ participation_tracking = pd.DataFrame(columns=['Participant'] +
     Fill Annotation Surveys columns
 '''
 # List all Qualtrics surveys
-all_surveys = glob.glob('*.csv')
+all_surveys = glob.glob('./surveys/*.csv')
 
 # Iterate through each survey results
 for survey in all_surveys:
@@ -47,6 +47,9 @@ for survey in all_surveys:
     # Filter dataframe based on the start and end date of the week
     filtered_df = survey_df[(start_date <= survey_df['StartDate']) 
                             & (survey_df['StartDate'] <= end_date)]
+
+    # Get the participant ID from the folder name
+    survey = os.path.basename(survey)
 
     # Iterate the rows through the surveys
     for index, row in filtered_df.iterrows():
@@ -136,7 +139,7 @@ participation_tracking['Total Uploads'] = participation_tracking.iloc[:, 8:15].s
     Save the Results
 '''
 # Save the result in a csv file
-if not os.path.exists(f'./results'):
-    os.mkdir(f'./results')
+if not os.path.exists(f'./participation_tracking'):
+    os.mkdir(f'./participation_tracking')
 participation_tracking.to_csv(f'./participation_tracking/{start_date}_to_{end_date}.csv')
 
