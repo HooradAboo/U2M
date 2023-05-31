@@ -138,5 +138,5 @@ participation_tracking['Total Uploads'] = participation_tracking.iloc[:, 8:15].s
 # Save the result in a csv file
 if not os.path.exists(f'./results'):
     os.mkdir(f'./results')
-participation_tracking.to_csv(f'./results/{start_date}_to_{end_date}.csv')
+participation_tracking.to_csv(f'./participation_tracking/{start_date}_to_{end_date}.csv')
 
