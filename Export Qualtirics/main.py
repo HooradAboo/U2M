@@ -1,10 +1,9 @@
 import glob
+import os
 import datetime
 import pandas as pd
+from utility import pid_status
 
-
-# List all Qualtrics surveys
-all_surveys = glob.glob('*.csv')
 
 # Calculate the start day and end day of the week
 start_date = pd.to_datetime(datetime.date(2023, 4, 23)).date()
@@ -18,7 +17,15 @@ participation_tracking = pd.DataFrame(columns=['Participant'] +
                                               [str(date.date()) + ' Sensor Uploads' for date in dates] +
                                               ['Total Surveys'] +
                                               ['Total Uploads'] +
-                                              ['Self Report Assessments'])
+                                              ['Self Report Assessments (MHealth)'] +
+                                              ['Self Report Assessments (DSQ)'])
+
+'''
+    Fill Annotations and Self Report Assassments columns.
+'''
+# List all Qualtrics surveys
+all_surveys = glob.glob('*.csv')
+# print(all_surveys)
 
 # Iterate through each survey results
 for survey in all_surveys:
@@ -35,32 +42,49 @@ for survey in all_surveys:
                             & (survey_df['StartDate'] <= end_date)]
     # print(filtered_df)
 
+    # Iterate the rows through the surveys
+    for index, row in filtered_df.iterrows():
 
-    '''
-        Update the Annotation Surveys and Total Surveys columns
-    '''
-    # Iterate morning, evining, or hourly surveys
-    if survey.startswith('Tech'):
-        
-        # Iterate the rows through the surveys
-        for index, row in filtered_df.iterrows():
+        # Iterate morning, evining, or hourly surveys
+        if survey.startswith('Tech'):
 
             # Add participant ID if it is not in the dataframe
-            if not row['Q1'] in participation_tracking['Participant'].values:
-                new_row = [row['Q1']] + [0] * (participation_tracking.shape[1] - 1)
-                participation_tracking.loc[len(participation_tracking)] = new_row
+            participation_tracking = pid_status(row['Q1'], participation_tracking)
 
             # Find the row index where the participant ID is equal to row['Q1'] and col index where the date is equal to row['StartDate']
             # Then increase the number of completed survey for the participant on the that day
             row_index = participation_tracking.index[participation_tracking['Participant'] == row['Q1']][0]
             column_index = (row['StartDate'] - start_date).days + 1
-            # print(row['StartDate'], column_index)
             participation_tracking.iloc[row_index, column_index] += 1
 
+        # Iterate MHealth survey
+        elif survey.startswith('MHealth'):
+            # print(filtered_df.iloc[0, :])
+
+            # Add participant ID if it is not in the dataframe
+            participation_tracking = pid_status(row['Q3'], participation_tracking)
+
+            # Find the row index where the participant ID is equal to row['Q3'] and col index of Self Report Assessments (MHealth)
+            # Then assign the 'Progress' entries to the cell
+            row_index = participation_tracking.index[participation_tracking['Participant'] == row['Q3']][0]
+            column_index = 17
+            participation_tracking.iloc[row_index, column_index] = int(row['Progress'])
+        
+        # Iterate Diagnostic survey
+        elif survey.startswith('Diagnostic'):
+
+            # Add participant ID if it is not in the dataframe
+            participation_tracking = pid_status(row['Q61'], participation_tracking)
+
+            # Find the row index where the participant ID is equal to row['Q61'] and col index of Self Report Assessments (DSQ)
+            # Then assign the 'Progress' entries to the cell
+            row_index = participation_tracking.index[participation_tracking['Participant'] == row['Q61']][0]
+            column_index = 18
+            participation_tracking.iloc[row_index, column_index] = int(row['Progress'])
 
 # Calculate the sum of all surveys for a week
 participation_tracking['Total Surveys'] = participation_tracking.iloc[:, 1:8].sum(axis=1)
 
-pd.set_option('display.max_columns', None)
+# pd.set_option('display.max_columns', None)
 print(participation_tracking)
 
