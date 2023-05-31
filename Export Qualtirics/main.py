@@ -25,7 +25,6 @@ participation_tracking = pd.DataFrame(columns=['Participant'] +
 '''
 # List all Qualtrics surveys
 all_surveys = glob.glob('*.csv')
-# print(all_surveys)
 
 # Iterate through each survey results
 for survey in all_surveys:
@@ -40,7 +39,6 @@ for survey in all_surveys:
     # Filter dataframe based on the start and end date of the week
     filtered_df = survey_df[(start_date <= survey_df['StartDate']) 
                             & (survey_df['StartDate'] <= end_date)]
-    # print(filtered_df)
 
     # Iterate the rows through the surveys
     for index, row in filtered_df.iterrows():
@@ -51,7 +49,7 @@ for survey in all_surveys:
             # Add participant ID if it is not in the dataframe
             participation_tracking = pid_status(row['Q1'], participation_tracking)
 
-            # Find the row index where the participant ID is equal to row['Q1'] and col index where the date is equal to row['StartDate']
+            # Find the row index where the participant ID is equal to row['Q1'] and column index where the date is equal to row['StartDate']
             # Then increase the number of completed survey for the participant on the that day
             row_index = participation_tracking.index[participation_tracking['Participant'] == row['Q1']][0]
             column_index = (row['StartDate'] - start_date).days + 1
@@ -64,7 +62,7 @@ for survey in all_surveys:
             # Add participant ID if it is not in the dataframe
             participation_tracking = pid_status(row['Q3'], participation_tracking)
 
-            # Find the row index where the participant ID is equal to row['Q3'] and col index of Self Report Assessments (MHealth)
+            # Find the row index where the participant ID is equal to row['Q3'] and column index of Self Report Assessments (MHealth)
             # Then assign the 'Progress' entries to the cell
             row_index = participation_tracking.index[participation_tracking['Participant'] == row['Q3']][0]
             column_index = 17
@@ -76,7 +74,7 @@ for survey in all_surveys:
             # Add participant ID if it is not in the dataframe
             participation_tracking = pid_status(row['Q61'], participation_tracking)
 
-            # Find the row index where the participant ID is equal to row['Q61'] and col index of Self Report Assessments (DSQ)
+            # Find the row index where the participant ID is equal to row['Q61'] and column index of Self Report Assessments (DSQ)
             # Then assign the 'Progress' entries to the cell
             row_index = participation_tracking.index[participation_tracking['Participant'] == row['Q61']][0]
             column_index = 18
@@ -85,6 +83,42 @@ for survey in all_surveys:
 # Calculate the sum of all surveys for a week
 participation_tracking['Total Surveys'] = participation_tracking.iloc[:, 1:8].sum(axis=1)
 
-# pd.set_option('display.max_columns', None)
-print(participation_tracking)
+
+'''
+    Fill Upload columns.
+'''
+# List all Participants folders
+all_participants = glob.glob('../P0*')
+
+# Iterate through all participants folder
+for participant in all_participants:
+
+    # Get the participant ID from the folder name
+    pid = os.path.basename(participant)[:5]
+
+    # Get the name of each .zip folder for participant
+    sensor_folder = os.listdir(os.path.join(participant, 'Sensor Data'))
+    
+    # Iterate all zip files in sensor folder of the participant
+    for zip in sensor_folder:
+
+        # Convert folder name to date format
+        folder_date = pd.to_datetime(zip[:10]).date()
+
+        # Check wheather folder date is in the week or not
+        if 0 <= (folder_date - start_date).days < 7:
+            # Add participant ID if it is not in the dataframe
+            participation_tracking = pid_status(pid, participation_tracking)
+            
+            # Find the row index where the participant ID is equal to pid and column index where the date is equal to folder_date
+            # Then increase the number of completed survey for the participant on the that day
+            row_index = participation_tracking.index[participation_tracking['Participant'] == pid][0]
+            column_index = (folder_date - start_date).days + 8
+            participation_tracking.iloc[row_index, column_index] += 1
+    
+# Calculate the sum of all uploads for a week
+participation_tracking['Total Uploads'] = participation_tracking.iloc[:, 8:15].sum(axis=1)
+
+# Save the result in a csv file
+participation_tracking.to_csv(f'./{start_date}_to_{end_date}.csv')
 
