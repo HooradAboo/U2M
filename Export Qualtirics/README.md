@@ -13,8 +13,8 @@ Copy the code in a folder based on the data structure of folder below:
     │   │   ├── File B1.1
     │   │   └── File B1.2
     │   └── Data Sensor
-    │       ├── Data B1.zip
-    │       └── Data B2.zip
+    │       ├── 20**-**-**.zip
+    │       └── 20**-**-**.zip
     └── Export Qualtircs
         ├── Qualtrics Surveys
         │   ├── Survey_1.csv
@@ -25,5 +25,8 @@ Copy the code in a folder based on the data structure of folder below:
         └── main.py
 
 This code will save the number of updated sensor data and completed qualtircs survey in CSV format during a week.
-Save the exported qualtircs in the same directory as the code in a subfolder called surveys.
-Run main.py and then enter the first day of the desired week to filtered the captured data. The results will save in participation_tracking folder.
+Save the exported qualtircs in the same directory as the code in a subfolder called "surveys".
+Run "main.py" and then enter the first day of the desired week to filtered the captured data. The results will save in participation_tracking folder.
+
+Important:
+The name of sensor data (zipped file) has to include a date with "20**-\**-**" format.

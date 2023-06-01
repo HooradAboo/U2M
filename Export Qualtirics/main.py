@@ -1,6 +1,7 @@
 import pandas as pd
 import glob
 import os
+import re
 
 
 # If the pid does not exists in the df, it will add it to it
@@ -16,6 +17,7 @@ def pid_status(pid, df):
 
 # Calculate the start day and end day of the week
 start_date = pd.to_datetime(input('Enter the start date of the week (e.g. 2023-04-23): ')).date()
+# start_date = pd.to_datetime('2023-05-15').date()
 end_date = pd.to_datetime(start_date + pd.DateOffset(days=6)).date()
 
 # Create a dataframe for participation tracking
@@ -111,7 +113,7 @@ for participant in all_participants:
     for zip in sensor_folder:
 
         # Convert folder name to date format
-        folder_date = pd.to_datetime(zip[:10]).date()
+        folder_date = pd.to_datetime(re.search(r"\d{4}-\d{2}-\d{2}", zip).group(0)).date()
 
         # Check wheather folder date is in the week or not
         if 0 <= (folder_date - start_date).days < 7:
